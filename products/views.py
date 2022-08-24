@@ -228,3 +228,51 @@ class JobNoticeListView(View):
         except Exception as e:
             traceback.print_exc()
 
+class JobNoticeDetailView(View):
+    def get(self, job_notice_id):
+        try:
+            """ 채용공고의 상세페이지 내용을 엔드포인트로 전달
+            Note:
+                1. 공고 리스트와의 차이점은 내용이 포함되어 있다는 점
+                
+            Todo:
+                
+            Return:
+                id           : 채용 공고의 id
+                company_name : 채용 공고의 채용사
+                title        : 채용 공고 제목
+                description  : 채용 공고 내용
+                reward       : 채용보상금
+                district     : 지역
+                position     : 채용포지션
+                skill        : 시용기술
+                
+            History:
+                2022-08-24(김지성): 초기 작성
+            """
+            
+            notice_obj   = JobNotice.objects.select_related('company').get(id=job_notice_id)
+            district_qs  = NoticeDistrict.objects.select_related('district').filter(job_notice_id=job_notice_id)
+            position_qs  = NoticePosition.objects.select_related('position').filter(job_notice_id=job_notice_id)
+            skill_qs     = NoticeSkill.objects.select_related('skill').filter(job_notice_id=job_notice_id)
+            
+            context = {
+                    'id'          : notice_obj.id,
+                    'company_name': notice_obj.company.name,
+                    'title'       : notice_obj.title,
+                    'description' : notice_obj.description,
+                    'reward'      : notice_obj.reward,
+                    'district'    : [district_obj.district.name for district_obj in district_qs],
+                    'position'    : [position_obj.position.name for position_obj in position_qs],
+                    'skill'       : [skill_obj.skill.name for skill_obj in skill_qs],
+            }
+            
+            
+            return JsonResponse({'result': context}, status=200)
+        except NoneFieldError as e:
+            return JsonResponse({'message':e.message}, status=e.status)
+        except NoneObjectsError as e:
+            return JsonResponse({'message':e.message}, status=e.status)
+        except Exception as e:
+            traceback.print_exc()
+
