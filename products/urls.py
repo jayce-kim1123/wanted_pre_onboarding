@@ -2,6 +2,7 @@ from django.urls import path
 
 from products.views import (
                         JobNoticeView,
+                        JobNoticeListView,
                         )
 
 """url
@@ -12,4 +13,5 @@ from products.views import (
 
 urlpatterns = [
     path('/jobnotice', JobNoticeView.as_view()),
+    path('/jobnoticelist', JobNoticeListView.as_view()),
 ]
