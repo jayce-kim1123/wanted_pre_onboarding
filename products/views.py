@@ -80,7 +80,7 @@ class JobNoticeView(View):
             return JsonResponse({'message':e.message}, status=e.status)
         except Exception as e:
             traceback.print_exc()
-
+    
     def patch(self, ):
         try:
             """ 채용공고를 수정
@@ -142,4 +142,41 @@ class JobNoticeView(View):
             return JsonResponse({'message':e.message}, status=e.status)
         except Exception as e:
             traceback.print_exc()
+    
+    def delete(self, request):
+        try:
+            """ 채용공고를 삭제
+            Note:
+                
+            Todo:
+                
+            Key:
+                job_notice_ids  : 채용공고의 아이디(다수 입력 가능)
+                
+            History:
+                2022-08-24(김지성): 초기 작성
+            """
+            notice_ids  = request.GET.get('job_notice_ids').split(',')
+            notice_qs   = JobNotice.objects.filter(id__in=notice_ids)
+            district_qs = NoticeDistrict.objects.filter(job_notice_id__in=notice_ids)
+            position_qs = NoticePosition.objects.filter(job_notice_id__in=notice_ids)
+            skill_qs    = NoticeSkill.objects.filter(job_notice_id__in=notice_ids)
+            
+            if not notice_qs:
+                return JsonResponse({"message" : "JOB_NOTICES_DOES_NOT_EXIST"}, status=404)
+            
+            notice_qs.delete()
+            district_qs.delete() 
+            position_qs.delete() 
+            skill_qs.delete()    
+            
+            return HttpResponse(status=200)
+        except NoneFieldError as e:
+            return JsonResponse({'message':e.message}, status=e.status)
+        except NoneObjectsError as e:
+            return JsonResponse({'message':e.message}, status=e.status)
+        except Exception as e:
+            traceback.print_exc()
+
+
 
