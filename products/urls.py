@@ -5,6 +5,7 @@ from products.views import (
                         JobNoticeListView,
                         JobNoticeDetailView,
                         JobNoticeSearchView,
+                        RecruitmentView,
                         )
 
 """url
@@ -13,6 +14,7 @@ from products.views import (
         JobNoticeListView   : 채용 공고 리스트
         JobNoticeDetailView : 채용 공고 상세페이지
         JobNoticeSearchView : 채용 공고 검색 기능
+        RecruitmentView     : 채용 기능(중복 검사)
 """
 
 urlpatterns = [
@@ -20,4 +22,5 @@ urlpatterns = [
     path('/jobnoticelist', JobNoticeListView.as_view()),
     path('/jobnotice/<int:job_notice_id>', JobNoticeDetailView.as_view()),
     path('/search', JobNoticeSearchView.as_view()),
+    path('/status', RecruitmentView.as_view()),
 ]

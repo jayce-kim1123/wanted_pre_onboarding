@@ -83,7 +83,7 @@ class JobNoticeView(View):
         except Exception as e:
             traceback.print_exc()
     
-    def patch(self, ):
+    def patch(self, request):
         try:
             """ 채용공고를 수정
             Note:
@@ -320,3 +320,42 @@ class JobNoticeSearchView(View):
         except Exception as e:
             traceback.print_exc()
 
+class RecruitmentView(View):
+    def post(self, request):
+        try:
+            """ 지원자가 채용 공고에 지원하는 기능
+            Note:
+                1. 동일한 사용자는 같은 채용공고에 2번 이상 지원할 수 없음
+                
+            Todo:
+                
+            Key:
+                user_id       : 유저 아이디
+                job_notice_id : 채용 공고 아이디
+                
+            History:
+                2022-08-24(김지성): 초기 작성
+            """
+            
+            data       = json.loads(request.body)
+            user_id    = data['user_id']
+            notice_id  = data['job_notice_id']
+            status     = RecruitmentStatus.objects.filter(user_id=user_id, job_notice_id=notice_id)
+            
+            if status:
+                return JsonResponse({'message':"ALREADY_EXISTED"}, status=400)
+            
+            RecruitmentStatus.objects.create(
+                user_id       = user_id,
+                job_notice_id = notice_id
+            )
+            
+            return HttpResponse(status=201)
+        except KeyError:
+            return JsonResponse({'message':"KeyError"}, status=400)
+        except NoneFieldError as e:
+            return JsonResponse({'message':e.message}, status=e.status)
+        except NoneObjectsError as e:
+            return JsonResponse({'message':e.message}, status=e.status)
+        except Exception as e:
+            traceback.print_exc()
