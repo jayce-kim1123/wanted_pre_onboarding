@@ -3,6 +3,8 @@ import json,traceback
 from django.http       import HttpResponse, JsonResponse
 from django.views      import View
 from django.db         import transaction
+from django.db.models  import Q
+from django.utils.html import strip_tags
 
 from db_models.models import Company,RecruitmentStatus, JobNotice, District, Position, Skill, NoticeDistrict, NoticePosition, NoticeSkill  
 from common.errors    import NoneFieldError, NoneObjectsError
@@ -272,6 +274,48 @@ class JobNoticeDetailView(View):
         except NoneFieldError as e:
             return JsonResponse({'message':e.message}, status=e.status)
         except NoneObjectsError as e:
+            return JsonResponse({'message':e.message}, status=e.status)
+        except Exception as e:
+            traceback.print_exc()
+
+class JobNoticeSearchView(View):
+    def get(self, request):
+        try:
+            """ 채용공고를 검색
+            Note:
+                1. 엔드포인트에서 전달받은 keyword를 포함한
+                    title과 description을 가지고 있는 모든 공고를 다시 엔드포인트에 전달함
+            Todo:
+                
+            Return:
+                total       : 조건에 맞는 총 공고 수
+                title       : 조건에 맞는 공고의 제목
+                description : 조건에 맞는 공고의 내용
+                
+            History:
+                2022-08-24(김지성): 초기 작성
+            """
+            
+            offset  = int(request.GET.get('offset', 0))
+            limit   = int(request.GET.get('limit', 30))
+            context = {'message':'NO_SEARCH_RESULTS'}
+            keyword = request.GET.get('q', None)
+            
+            if keyword:
+                q_title       = Q(title__icontains=keyword)
+                q_description = Q(description__icontains=keyword)
+                notice_qs     = JobNotice.objects.filter(q_title | q_description)
+                
+                context = {
+                'total'       : len(notice_qs),
+                'search_list' : [{
+                    'title'       : content.title,
+                    'description' : strip_tags(content.description)
+                } for content in notice_qs[offset:offset+limit]]
+            }
+            
+            return JsonResponse({"result": context}, status=200)
+        except NoneFieldError as e:
             return JsonResponse({'message':e.message}, status=e.status)
         except Exception as e:
             traceback.print_exc()
